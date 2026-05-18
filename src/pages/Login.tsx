@@ -16,21 +16,25 @@ export default function Login() {
     setMessage(null)
     setSubmitting(true)
 
-    if (isSignUp) {
-      const { error } = await signUp(email, password)
-      if (error) {
-        setError(error.message)
+    try {
+      if (isSignUp) {
+        const { error } = await signUp(email, password)
+        if (error) {
+          setError(error.message)
+        } else {
+          setMessage('Check your email for a confirmation link.')
+        }
       } else {
-        setMessage('Check your email for a confirmation link.')
+        const { error } = await signIn(email, password)
+        if (error) {
+          setError(error.message)
+        }
       }
-    } else {
-      const { error } = await signIn(email, password)
-      if (error) {
-        setError(error.message)
-      }
+    } catch {
+      setError('Something went wrong. Try again.')
+    } finally {
+      setSubmitting(false)
     }
-
-    setSubmitting(false)
   }
 
   return (
