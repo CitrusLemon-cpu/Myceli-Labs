@@ -9,7 +9,7 @@ alter table public.profiles enable row level security;
 
 create policy "Users can read all profiles"
   on public.profiles for select
-  using (true);
+  using (auth.uid() is not null);
 
 create policy "Users can update their own profile"
   on public.profiles for update
@@ -32,6 +32,11 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- Backfill profiles for any users created before this migration
+insert into public.profiles (id, display_name)
+select id, split_part(email, '@', 1) from auth.users
+on conflict (id) do nothing;
 
 -- Inbox items table
 create table public.inbox_items (
